@@ -162,6 +162,10 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
+        case ID_SAVE:
+            return TRUE;
+        case ID_LOAD:
+            return TRUE;
         case IDC_RADIO_DIGITAL:
             if (HIWORD(wParam) == BN_CLICKED) {
                 isDigital = true;
