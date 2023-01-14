@@ -221,7 +221,7 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				MessageBox(NULL, L"ファイルが開けません", NULL, MB_OK);
 				return TRUE;
 			}
-			std::string text = std::format("{},{}", currentFontSize, is24h ? 24 : 12);			
+			std::string text = std::format("{},{},{}", currentFontSize, is24h ? 24 : 12, isDigital ? 'd' : 'a');
 			WriteFile(hFile, text.c_str(), text.size(), &dwSize, NULL);
 
 			CloseHandle(hFile);
@@ -272,6 +272,36 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					CB_SETCURSEL,
 					index,
 					0);
+
+				// Digital/Analog
+				std::getline(stream, buf, ',');
+				if (buf == "a") {
+					isDigital = false;
+					SendDlgItemMessage(hDlg,
+						IDC_RADIO_DIGITAL,
+						BM_SETCHECK,
+						BST_UNCHECKED,
+						0);
+					SendDlgItemMessage(hDlg,
+						IDC_RADIO_ANALOG,
+						BM_SETCHECK,
+						BST_CHECKED,
+						0);
+				}
+				else {
+					isDigital = true;
+					SendDlgItemMessage(hDlg,
+						IDC_RADIO_DIGITAL,
+						BM_SETCHECK,
+						BST_CHECKED,
+						0);
+					SendDlgItemMessage(hDlg,
+						IDC_RADIO_ANALOG,
+						BM_SETCHECK,
+						BST_UNCHECKED,
+						0);
+				}
+
 
 			}
 			CloseHandle(hFile);
