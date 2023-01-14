@@ -93,7 +93,7 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	static OPENFILENAME ofn = { 0 };
 	static wchar_t strFilePath[MAX_PATH] = { 0 };
-	static DWORD wReadSize;
+	static DWORD dwSize;
 
 	//ダイアログプロシージャ
 	switch (uMsg)
@@ -117,13 +117,12 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		ofn.nFilterIndex = 0;
 		ofn.lpstrFile = strFilePath;
 		ofn.nMaxFile = MAX_PATH;
-		ofn.Flags = OFN_FILEMUSTEXIST;
+		ofn.Flags = OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT; // ofnは保存ダイアログと共用。保存ダイアログ用のオプションも含めておく。
 
 
 		// 1秒ごとにタイマー呼び出し
 		SetTimer(hDlg, 1, 1000, NULL);
 
-		// トラックバー（Slider Control）の初期化
 		// 指定のダイアログボックス内のコントロールへメッセージを送る
 		for (int size = minFontSize; size <= maxFontSize; size += fontSizeDelta) {
 			SendDlgItemMessage(hDlg,
@@ -214,10 +213,20 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
-		case ID_SAVE:
+		case ID_SAVE: {
+			GetSaveFileName(&ofn);
+			HANDLE hFile = CreateFile(strFilePath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
+			if (hFile == INVALID_HANDLE_VALUE) {
+				MessageBox(NULL, L"ファイルが開けません", NULL, MB_OK);
+				return TRUE;
+			}
+			std::string text = std::format("{},{}", currentFontSize, is24h ? 24 : 12);			
+			WriteFile(hFile, text.c_str(), text.size(), &dwSize, NULL);
 
-			return TRUE;
+			CloseHandle(hFile);
+				return TRUE;
+		}
 		case ID_LOAD: {
 			GetOpenFileName(&ofn);
 			HANDLE hFile = CreateFile(strFilePath, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -230,7 +239,7 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			std::string text;
 			text.resize(GetFileSize(hFile, NULL));
 			// &text[0] は内部文字列バッファーの先頭アドレス
-			if (TRUE == ReadFile(hFile, &text[0], GetFileSize(hFile, NULL), &wReadSize, NULL)) {
+			if (TRUE == ReadFile(hFile, &text[0], GetFileSize(hFile, NULL), &dwSize, NULL)) {
 				OutputDebugStringA(text.c_str());
 				std::stringstream stream{ text };
 				std::string buf;
