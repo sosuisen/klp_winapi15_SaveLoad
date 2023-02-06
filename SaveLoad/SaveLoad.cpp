@@ -214,7 +214,7 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case ID_SAVE: {
-			GetSaveFileName(&ofn);
+			if (!GetSaveFileName(&ofn)) return TRUE;
 			HANDLE hFile = CreateFile(strFilePath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 			if (hFile == INVALID_HANDLE_VALUE) {
@@ -228,7 +228,7 @@ INT_PTR CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				return TRUE;
 		}
 		case ID_LOAD: {
-			GetOpenFileName(&ofn);
+			if (!GetOpenFileName(&ofn)) return TRUE;
 			HANDLE hFile = CreateFile(strFilePath, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 			if (hFile == INVALID_HANDLE_VALUE) {
